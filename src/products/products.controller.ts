@@ -19,6 +19,6 @@ export class ProductsController {
 
   @Get(':slug')
   async findOne(@Param('slug') slug: string): Promise<Product> {
-    return  this.productsService.findOne(slug)
+    return this.productsService.findOne(slug)
   }
 }
