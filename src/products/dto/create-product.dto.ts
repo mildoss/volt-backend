@@ -18,4 +18,7 @@ export class CreateProductDto {
 
   @IsNumber()
   categoryId: number;
+
+  @IsNumber()
+  stock: number;
 }
