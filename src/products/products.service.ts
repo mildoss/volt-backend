@@ -7,7 +7,7 @@ export class ProductsService {
   constructor(private prisma: PrismaService) {}
 
   async create(createProductDto: CreateProductDto) {
-    const {name, description, price, imageUrl, categoryId} = createProductDto;
+    const {name, description, price, imageUrl, categoryId, stock} = createProductDto;
     return this.prisma.product.create({
       data: {
         name,
@@ -15,6 +15,7 @@ export class ProductsService {
         price,
         imageUrl,
         categoryId,
+        stock,
         slug: this.generateSlug(name)
       }
     });
@@ -49,7 +50,14 @@ export class ProductsService {
         category: true,
         reviews: {
           orderBy: {createdAt: 'desc'},
-          include: {user: true}
+          include: {user: {
+              select: {
+                id: true,
+                fullName: true,
+                avatarUrl: true
+              }
+            }
+          }
         }
       }
     })

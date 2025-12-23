@@ -33,7 +33,7 @@ export class AuthService {
       data: {
         email: dto.email,
         password: password,
-        fullName: '',
+        fullName: dto.fullName,
         phone: '',
         avatarUrl: ''
       },
