@@ -1,4 +1,4 @@
-import {Controller, Get, UseGuards} from '@nestjs/common';
+import {Controller, Get, Param, Patch, UseGuards} from '@nestjs/common';
 import { UsersService } from './users.service';
 import {AuthGuard} from "@nestjs/passport";
 import {CurrentUser} from "../auth/decorators/user.decorator";
@@ -11,5 +11,14 @@ export class UsersController {
   @UseGuards(AuthGuard('jwt'))
   async getProfile(@CurrentUser('id') id: number) {
     return this.usersService.findById(id);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('profile/favorites/:productId')
+  async toggleFavorite(
+    @CurrentUser('id') id: number,
+    @Param('productId') productId: string
+  ) {
+    return this.usersService.toggleFavorite(id, +productId);
   }
 }
