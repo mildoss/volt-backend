@@ -1,10 +1,13 @@
 import {Injectable, NotFoundException} from '@nestjs/common';
 import {CreateProductDto} from './dto/create-product.dto';
 import {PrismaService} from "../prisma.service";
+import {EnumProductSort, GetAllProductDto} from "./dto/get-all-product.dto";
+import {Prisma} from "@prisma/client";
 
 @Injectable()
 export class ProductsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) {
+  }
 
   async create(createProductDto: CreateProductDto) {
     const {name, description, price, imageUrl, categoryId, stock} = createProductDto;
@@ -21,26 +24,64 @@ export class ProductsService {
     });
   }
 
-  async findAll(searchTerm?: string) {
-    return this.prisma.product.findMany({
-      where: searchTerm ? {
+  async findAll(dto: GetAllProductDto) {
+    const {sort, searchTerm} = dto;
+
+    const prismaSort: Prisma.ProductOrderByWithRelationInput[] = [];
+
+    if (sort === EnumProductSort.LOW_PRICE) prismaSort.push({price: 'asc'})
+    else if (sort === EnumProductSort.HIGH_PRICE) prismaSort.push({price: 'desc'});
+    else if (sort === EnumProductSort.OLDEST) prismaSort.push({createdAt: 'asc'});
+    else if (sort === EnumProductSort.NEWEST) prismaSort.push({createdAt: 'desc'});
+    else prismaSort.push({createdAt: 'desc'});
+
+    const prismaSearch: Prisma.ProductWhereInput = searchTerm
+      ? {
         OR: [
           {
             name: {
               contains: searchTerm,
               mode: 'insensitive'
-            }
+            },
           },
           {
             description: {
               contains: searchTerm,
               mode: 'insensitive'
-            }
+            },
+          },
+          {
+            category: {
+              name: {
+                contains: searchTerm,
+                mode: 'insensitive'
+              },
+            },
+          },
+        ],
+      }
+      : {};
+
+    const products = await this.prisma.product.findMany({
+      where: prismaSearch,
+      orderBy: prismaSort,
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        price: true,
+        imageUrl: true,
+        stock: true,
+        category: {
+          select: {
+            id: true,
+            name: true
           }
-        ]
-      } : {},
-      include: {category: true}
+        }
+      }
     })
+
+    return products;
   }
 
   async findOne(slug: string) {
@@ -50,7 +91,8 @@ export class ProductsService {
         category: true,
         reviews: {
           orderBy: {createdAt: 'desc'},
-          include: {user: {
+          include: {
+            user: {
               select: {
                 id: true,
                 fullName: true,

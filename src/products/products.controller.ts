@@ -4,6 +4,7 @@ import { CreateProductDto } from './dto/create-product.dto';
 import {Product} from "@prisma/client";
 import {AuthGuard} from "@nestjs/passport";
 import {OnlyAdminGuard} from "../auth/guards/admin.guard";
+import {GetAllProductDto} from "./dto/get-all-product.dto";
 
 @Controller('products')
 export class ProductsController {
@@ -16,8 +17,8 @@ export class ProductsController {
   }
 
   @Get()
-  async findAll(@Query('searchTerm') searchTerm: string): Promise<Product[]> {
-    return this.productsService.findAll(searchTerm);
+  async findAll(@Query() queryDto: GetAllProductDto) {
+    return this.productsService.findAll(queryDto);
   }
 
   @Get(':slug')
