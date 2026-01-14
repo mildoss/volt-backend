@@ -1,5 +1,8 @@
-import {Injectable, NotFoundException} from '@nestjs/common';
+import {BadRequestException, Injectable, NotFoundException} from '@nestjs/common';
 import {PrismaService} from "../prisma.service";
+import {UpdateUserDto} from "./dto/update-user.dto";
+import {compare, hash} from "bcrypt";
+
 
 @Injectable()
 export class UsersService {
@@ -12,7 +15,9 @@ export class UsersService {
         id: true,
         email: true,
         fullName: true,
+        phone: true,
         avatarUrl: true,
+        address: true,
         favorites: {
           select: {
             id: true,
@@ -52,5 +57,48 @@ export class UsersService {
     })
 
     return { message: isExists ? 'Removed from favorites' : 'Added to favorites' }
+  }
+
+  async updateProfile(id: number, dto: UpdateUserDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (dto.email) {
+      const isSameUser = await this.prisma.user.findUnique({ where: { email: dto.email } });
+      if (isSameUser && id !== isSameUser.id) {
+        throw new BadRequestException('Email is already busy');
+      }
+    }
+
+    let newPassword = user.password;
+    if (dto.password) {
+      if (!dto.oldPassword) {
+        throw new BadRequestException('To change password, enter your old password');
+      }
+
+      const isValidOldPassword = await compare(dto.oldPassword, user.password);
+      if (!isValidOldPassword) {
+        throw new BadRequestException('Invalid old password');
+      }
+
+      newPassword = await hash(dto.password, 10);
+    }
+
+    return this.prisma.user.update({
+      where: { id },
+      data: {
+        email: dto.email,
+        fullName: dto.fullName,
+        avatarUrl: dto.avatarUrl,
+        phone: dto.phone,
+        address: dto.address,
+        password: newPassword,
+      },
+    });
   }
 }
