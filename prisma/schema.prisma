@@ -45,6 +45,7 @@ model Product {
   price       Int
   imageUrl    String?
   stock       Int     @default(0)
+  specs       Json?
 
   categoryId Int
   category   Category @relation(fields: [categoryId], references: [id])

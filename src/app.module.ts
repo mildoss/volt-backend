@@ -7,6 +7,7 @@ import { ReviewsModule } from './reviews/reviews.module';
 import { UsersModule } from './users/users.module';
 import { CartModule } from './cart/cart.module';
 import { OrderModule } from './order/order.module';
+import {MediaModule} from "./media/media.module";
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { OrderModule } from './order/order.module';
     UsersModule,
     CartModule,
     OrderModule,
+    MediaModule
   ],
   controllers: [],
   providers: [PrismaService],
