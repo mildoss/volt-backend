@@ -18,6 +18,7 @@ export class UsersService {
         phone: true,
         avatarUrl: true,
         address: true,
+        role: true,
         favorites: {
           select: {
             id: true,

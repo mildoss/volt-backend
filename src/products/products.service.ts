@@ -6,11 +6,11 @@ import {Prisma} from "@prisma/client";
 
 @Injectable()
 export class ProductsService {
-  constructor(private prisma: PrismaService) {
-  }
+  constructor(private prisma: PrismaService) {}
 
   async create(createProductDto: CreateProductDto) {
-    const {name, description, price, imageUrl, categoryId, stock} = createProductDto;
+    const { name, description, price, imageUrl, categoryId, stock, specs } =
+      createProductDto;
     return this.prisma.product.create({
       data: {
         name,
@@ -19,47 +19,55 @@ export class ProductsService {
         imageUrl,
         categoryId,
         stock,
-        slug: this.generateSlug(name)
-      }
+        specs,
+        slug: this.generateSlug(name),
+      },
     });
   }
 
+  async delete(id: number) {
+    return this.prisma.product.delete({ where: { id } });
+  }
+
   async findAll(dto: GetAllProductDto) {
-    const {sort, searchTerm} = dto;
+    const { sort, searchTerm } = dto;
 
     const prismaSort: Prisma.ProductOrderByWithRelationInput[] = [];
 
-    if (sort === EnumProductSort.LOW_PRICE) prismaSort.push({price: 'asc'})
-    else if (sort === EnumProductSort.HIGH_PRICE) prismaSort.push({price: 'desc'});
-    else if (sort === EnumProductSort.OLDEST) prismaSort.push({createdAt: 'asc'});
-    else if (sort === EnumProductSort.NEWEST) prismaSort.push({createdAt: 'desc'});
-    else prismaSort.push({createdAt: 'desc'});
+    if (sort === EnumProductSort.LOW_PRICE) prismaSort.push({ price: 'asc' });
+    else if (sort === EnumProductSort.HIGH_PRICE)
+      prismaSort.push({ price: 'desc' });
+    else if (sort === EnumProductSort.OLDEST)
+      prismaSort.push({ createdAt: 'asc' });
+    else if (sort === EnumProductSort.NEWEST)
+      prismaSort.push({ createdAt: 'desc' });
+    else prismaSort.push({ createdAt: 'desc' });
 
     const prismaSearch: Prisma.ProductWhereInput = searchTerm
       ? {
-        OR: [
-          {
-            name: {
-              contains: searchTerm,
-              mode: 'insensitive'
-            },
-          },
-          {
-            description: {
-              contains: searchTerm,
-              mode: 'insensitive'
-            },
-          },
-          {
-            category: {
+          OR: [
+            {
               name: {
                 contains: searchTerm,
-                mode: 'insensitive'
+                mode: 'insensitive',
               },
             },
-          },
-        ],
-      }
+            {
+              description: {
+                contains: searchTerm,
+                mode: 'insensitive',
+              },
+            },
+            {
+              category: {
+                name: {
+                  contains: searchTerm,
+                  mode: 'insensitive',
+                },
+              },
+            },
+          ],
+        }
       : {};
 
     const products = await this.prisma.product.findMany({
@@ -75,44 +83,51 @@ export class ProductsService {
         category: {
           select: {
             id: true,
-            name: true
-          }
-        }
-      }
-    })
+            name: true,
+          },
+        },
+      },
+    });
 
     return products;
   }
 
   async findOne(slug: string) {
     const product = await this.prisma.product.findUnique({
-      where: {slug},
+      where: { slug },
       include: {
         category: true,
         reviews: {
-          orderBy: {createdAt: 'desc'},
+          orderBy: { createdAt: 'desc' },
           include: {
             user: {
               select: {
                 id: true,
                 fullName: true,
-                avatarUrl: true
-              }
-            }
-          }
-        }
-      }
-    })
+                avatarUrl: true,
+              },
+            },
+          },
+        },
+      },
+    });
 
-    if (!product) throw new NotFoundException('No product was found matching your search query.')
+    if (!product)
+      throw new NotFoundException(
+        'No product was found matching your search query.',
+      );
 
     return product;
   }
 
   private generateSlug(name: string): string {
-    return name
-      .toLowerCase()
-      .replace(/ /g, '-')
-      .replace(/[^\w-]+/g, '') + '-' + Math.random().toString(36).substring(2, 7);
+    return (
+      name
+        .toLowerCase()
+        .replace(/ /g, '-')
+        .replace(/[^\w-]+/g, '') +
+      '-' +
+      Math.random().toString(36).substring(2, 7)
+    );
   }
 }

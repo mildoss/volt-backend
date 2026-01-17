@@ -1,4 +1,4 @@
-import {IsNumber, IsOptional, IsString, Min} from "class-validator";
+import { IsNumber, IsObject, IsOptional, IsString, Min } from 'class-validator';
 
 export class CreateProductDto {
   @IsString()
@@ -21,4 +21,8 @@ export class CreateProductDto {
 
   @IsNumber()
   stock: number;
+
+  @IsOptional()
+  @IsObject()
+  specs?: Record<string, string>;
 }

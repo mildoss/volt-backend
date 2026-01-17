@@ -1,4 +1,13 @@
-import {Controller, Get, Post, Body, Param, Query, UseGuards} from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+  Delete,
+} from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import {Product} from "@prisma/client";
@@ -16,6 +25,12 @@ export class ProductsController {
     return this.productsService.create(createProductDto);
   }
 
+  @UseGuards(AuthGuard('jwt'), OnlyAdminGuard)
+  @Delete(':id')
+  async delete(@Param('id') id: string) {
+    return this.productsService.delete(+id);
+  }
+
   @Get()
   async findAll(@Query() queryDto: GetAllProductDto) {
     return this.productsService.findAll(queryDto);
@@ -23,6 +38,6 @@ export class ProductsController {
 
   @Get(':slug')
   async findOne(@Param('slug') slug: string): Promise<Product> {
-    return this.productsService.findOne(slug)
+    return this.productsService.findOne(slug);
   }
 }
