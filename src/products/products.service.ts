@@ -8,7 +8,7 @@ import {Prisma} from "@prisma/client";
 export class ProductsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createProductDto: CreateProductDto) {
+  async create(userId: number, createProductDto: CreateProductDto) {
     const { name, description, price, imageUrl, categoryId, stock, specs } =
       createProductDto;
     return this.prisma.product.create({
@@ -21,12 +21,31 @@ export class ProductsService {
         stock,
         specs,
         slug: this.generateSlug(name),
+        userId,
       },
     });
   }
 
   async delete(id: number) {
     return this.prisma.product.delete({ where: { id } });
+  }
+
+  async update(id: number, dto: CreateProductDto) {
+    const { name, description, price, imageUrl, categoryId, stock, specs } =
+      dto;
+
+    return this.prisma.product.update({
+      where: { id },
+      data: {
+        name,
+        description,
+        price,
+        imageUrl,
+        categoryId,
+        stock,
+        specs,
+      },
+    });
   }
 
   async findAll(dto: GetAllProductDto) {
@@ -80,6 +99,8 @@ export class ProductsService {
         price: true,
         imageUrl: true,
         stock: true,
+        specs: true,
+        createdAt: true,
         category: {
           select: {
             id: true,
@@ -90,6 +111,27 @@ export class ProductsService {
     });
 
     return products;
+  }
+
+  async findAllForAdmin() {
+    return this.prisma.product.findMany({
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        name: true,
+        price: true,
+        imageUrl: true,
+        stock: true,
+        createdAt: true,
+        updatedAt: true,
+        user: {
+          select: { email: true, fullName: true },
+        },
+        category: {
+          select: { id: true, name: true },
+        },
+      },
+    });
   }
 
   async findOne(slug: string) {
@@ -117,6 +159,30 @@ export class ProductsService {
         'No product was found matching your search query.',
       );
 
+    return product;
+  }
+
+  async findById(id: number) {
+    const product = await this.prisma.product.findUnique({
+      where: { id },
+      include: {
+        category: true,
+        reviews: {
+          orderBy: { createdAt: 'desc' },
+          include: {
+            user: {
+              select: {
+                id: true,
+                fullName: true,
+                avatarUrl: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!product) throw new NotFoundException('Product not found');
     return product;
   }
 

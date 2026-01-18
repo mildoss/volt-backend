@@ -7,6 +7,7 @@ import {
   Query,
   UseGuards,
   Delete,
+  Patch,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -14,6 +15,7 @@ import {Product} from "@prisma/client";
 import {AuthGuard} from "@nestjs/passport";
 import {OnlyAdminGuard} from "../auth/guards/admin.guard";
 import {GetAllProductDto} from "./dto/get-all-product.dto";
+import { CurrentUser } from '../auth/decorators/user.decorator';
 
 @Controller('products')
 export class ProductsController {
@@ -21,8 +23,11 @@ export class ProductsController {
 
   @UseGuards(AuthGuard('jwt'), OnlyAdminGuard)
   @Post()
-  async create(@Body() createProductDto: CreateProductDto): Promise<Product> {
-    return this.productsService.create(createProductDto);
+  async create(
+    @CurrentUser('id') userId: number,
+    @Body() createProductDto: CreateProductDto,
+  ) {
+    return this.productsService.create(userId, createProductDto);
   }
 
   @UseGuards(AuthGuard('jwt'), OnlyAdminGuard)
@@ -31,9 +36,26 @@ export class ProductsController {
     return this.productsService.delete(+id);
   }
 
+  @UseGuards(AuthGuard('jwt'), OnlyAdminGuard)
+  @Patch(':id')
+  async update(@Param('id') id: string, @Body() dto: CreateProductDto) {
+    return this.productsService.update(+id, dto);
+  }
+
+  @Get('admin/all')
+  @UseGuards(AuthGuard('jwt'), OnlyAdminGuard)
+  async findAllForAdmin() {
+    return this.productsService.findAllForAdmin();
+  }
+
   @Get()
   async findAll(@Query() queryDto: GetAllProductDto) {
     return this.productsService.findAll(queryDto);
+  }
+
+  @Get('by-id/:id')
+  async findById(@Param('id') id: string) {
+    return this.productsService.findById(+id);
   }
 
   @Get(':slug')
