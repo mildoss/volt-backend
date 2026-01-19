@@ -1,8 +1,18 @@
-import {Controller, Get, Post, Body, UseGuards} from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  UseGuards,
+  Patch,
+  Param,
+} from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import {AuthGuard} from "@nestjs/passport";
 import {CurrentUser} from "../auth/decorators/user.decorator";
+import { OnlyAdminGuard } from '../auth/guards/admin.guard';
+import { OrderStatus } from '@prisma/client';
 
 @Controller('orders')
 @UseGuards(AuthGuard('jwt'))
@@ -12,7 +22,7 @@ export class OrderController {
   @Post()
   async placeOrder(
     @CurrentUser('id') userId: number,
-    @Body() dto: CreateOrderDto
+    @Body() dto: CreateOrderDto,
   ) {
     return this.orderService.placeOrder(userId, dto);
   }
@@ -20,5 +30,20 @@ export class OrderController {
   @Get()
   async getMyOrders(@CurrentUser('id') userId: number) {
     return this.orderService.getMyOrders(userId);
+  }
+
+  @Get('all')
+  @UseGuards(AuthGuard('jwt'), OnlyAdminGuard)
+  async getAllOrders() {
+    return this.orderService.getAll();
+  }
+
+  @Patch('status/:id')
+  @UseGuards(AuthGuard('jwt'), OnlyAdminGuard)
+  async updateStatus(
+    @Param('id') id: string,
+    @Body('status') status: OrderStatus,
+  ) {
+    return this.orderService.updateStatus(+id, status);
   }
 }
