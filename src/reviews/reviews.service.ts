@@ -36,6 +36,31 @@ export class ReviewsService {
   };
 
   async findAll() {
-    return this.prisma.review.findMany();
+    return this.prisma.review.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            avatarUrl: true,
+          },
+        },
+        product: {
+          select: {
+            id: true,
+            name: true,
+            imageUrl: true,
+          },
+        },
+      },
+    });
+  }
+
+  async delete(id: number) {
+    return this.prisma.review.delete({
+      where: { id },
+    });
   }
 }
