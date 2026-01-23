@@ -3,10 +3,15 @@ import {CreateProductDto} from './dto/create-product.dto';
 import {PrismaService} from "../prisma.service";
 import {EnumProductSort, GetAllProductDto} from "./dto/get-all-product.dto";
 import {Prisma} from "@prisma/client";
+import { PaginationService } from '../pagination/pagination.service';
+import { PaginationDto } from '../pagination/dto/pagination.dto';
 
 @Injectable()
 export class ProductsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private paginationService: PaginationService,
+  ) {}
 
   async create(userId: number, createProductDto: CreateProductDto) {
     const { name, description, price, imageUrl, categoryId, stock, specs } =
@@ -50,6 +55,7 @@ export class ProductsService {
 
   async findAll(dto: GetAllProductDto) {
     const { sort, searchTerm } = dto;
+    const { skip, perPage } = this.paginationService.getPagination(dto);
 
     const prismaSort: Prisma.ProductOrderByWithRelationInput[] = [];
 
@@ -92,6 +98,8 @@ export class ProductsService {
     const products = await this.prisma.product.findMany({
       where: prismaSearch,
       orderBy: prismaSort,
+      skip,
+      take: perPage,
       select: {
         id: true,
         name: true,
@@ -110,12 +118,18 @@ export class ProductsService {
       },
     });
 
-    return products;
+    const count = await this.prisma.product.count({ where: prismaSearch });
+
+    return { items: products, length: count };
   }
 
-  async findAllForAdmin() {
-    return this.prisma.product.findMany({
+  async findAllForAdmin(dto: PaginationDto) {
+    const { skip, perPage } = this.paginationService.getPagination(dto);
+
+    const products = await this.prisma.product.findMany({
       orderBy: { createdAt: 'desc' },
+      skip,
+      take: perPage,
       select: {
         id: true,
         name: true,
@@ -132,6 +146,10 @@ export class ProductsService {
         },
       },
     });
+
+    const count = await this.prisma.product.count();
+
+    return { items: products, length: count };
   }
 
   async findOne(slug: string) {

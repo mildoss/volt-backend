@@ -1,11 +1,16 @@
-import {BadRequestException, Injectable} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
-import {PrismaService} from "../prisma.service";
+import { PrismaService } from '../prisma.service';
 import { OrderStatus } from '@prisma/client';
+import { PaginationService } from '../pagination/pagination.service';
+import { PaginationDto } from '../pagination/dto/pagination.dto';
 
 @Injectable()
 export class OrderService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private paginationService: PaginationService,
+  ) {}
 
   async placeOrder(userId: number, dto: CreateOrderDto) {
     const cart = await this.prisma.cart.findUnique({
@@ -82,33 +87,39 @@ export class OrderService {
     });
   }
 
-  async getAll() {
-    return this.prisma.order.findMany({
+  async getAll(dto: PaginationDto) {
+    const { skip, perPage } = this.paginationService.getPagination(dto);
+
+    const orders = await this.prisma.order.findMany({
       orderBy: { createdAt: 'desc' },
+      skip,
+      take: perPage,
       include: {
-        user: {
-          select: {
-            id: true,
-            fullName: true,
-            email: true,
-            phone: true,
-            avatarUrl: true,
-          },
-        },
         items: {
           include: {
             product: {
               select: {
-                id: true,
                 name: true,
-                price: true,
                 imageUrl: true,
+                price: true,
               },
             },
           },
         },
+        user: {
+          select: {
+            id: true,
+            email: true,
+            fullName: true,
+            phone: true,
+          },
+        },
       },
     });
+
+    const count = await this.prisma.order.count();
+
+    return { items: orders, length: count };
   }
 
   async updateStatus(orderId: number, status: OrderStatus) {

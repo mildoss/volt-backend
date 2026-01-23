@@ -1,21 +1,28 @@
-import {BadRequestException, Injectable} from '@nestjs/common';
-import {PrismaService} from "../prisma.service";
-import {CreateReviewDto} from "./dto/create-review.dto";
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma.service';
+import { CreateReviewDto } from './dto/create-review.dto';
+import { PaginationDto } from '../pagination/dto/pagination.dto';
+import { PaginationService } from '../pagination/pagination.service';
 
 @Injectable()
 export class ReviewsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private paginationService: PaginationService,
+  ) {}
 
   async create(userId: number, dto: CreateReviewDto, productId: number) {
     const isExist = await this.prisma.review.findFirst({
       where: {
         userId,
-        productId
-      }
-    })
+        productId,
+      },
+    });
 
     if (isExist) {
-      throw new BadRequestException('You have already left a review for this product');
+      throw new BadRequestException(
+        'You have already left a review for this product',
+      );
     }
 
     return this.prisma.review.create({
@@ -23,21 +30,25 @@ export class ReviewsService {
         ...dto,
         product: {
           connect: {
-            id: productId
-          }
+            id: productId,
+          },
         },
         user: {
           connect: {
-            id: userId
-          }
-        }
-      }
+            id: userId,
+          },
+        },
+      },
     });
-  };
+  }
 
-  async findAll() {
-    return this.prisma.review.findMany({
+  async findAll(dto: PaginationDto) {
+    const { skip, perPage } = this.paginationService.getPagination(dto);
+
+    const reviews = await this.prisma.review.findMany({
       orderBy: { createdAt: 'desc' },
+      skip,
+      take: perPage,
       include: {
         user: {
           select: {
@@ -56,6 +67,10 @@ export class ReviewsService {
         },
       },
     });
+
+    const count = await this.prisma.review.count();
+
+    return { items: reviews, length: count };
   }
 
   async delete(id: number) {

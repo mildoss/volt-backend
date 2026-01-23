@@ -16,6 +16,7 @@ import {AuthGuard} from "@nestjs/passport";
 import {OnlyAdminGuard} from "../auth/guards/admin.guard";
 import {GetAllProductDto} from "./dto/get-all-product.dto";
 import { CurrentUser } from '../auth/decorators/user.decorator';
+import { PaginationDto } from '../pagination/dto/pagination.dto';
 
 @Controller('products')
 export class ProductsController {
@@ -44,8 +45,8 @@ export class ProductsController {
 
   @Get('admin/all')
   @UseGuards(AuthGuard('jwt'), OnlyAdminGuard)
-  async findAllForAdmin() {
-    return this.productsService.findAllForAdmin();
+  async findAllForAdmin(@Query() dto: PaginationDto) {
+    return this.productsService.findAllForAdmin(dto);
   }
 
   @Get()
