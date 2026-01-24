@@ -1,8 +1,16 @@
-import {Body, Controller, Get, HttpCode, Post, UseGuards, Request} from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Post,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
-import {AuthDto} from "./dto/auth.dto";
-import {AuthGuard} from "@nestjs/passport";
-import {User} from "@prisma/client";
+import { AuthDto } from './dto/auth.dto';
+import { AuthGuard } from '@nestjs/passport';
+import { User } from '@prisma/client';
 
 interface AuthRequest extends Request {
   user: User;
@@ -16,13 +24,13 @@ export class AuthController {
   @Post('login')
   async login(@Body() dto: AuthDto) {
     return this.authService.login(dto);
-  };
+  }
 
   @HttpCode(200)
   @Post('register')
   async register(@Body() dto: AuthDto) {
     return this.authService.register(dto);
-  };
+  }
 
   @UseGuards(AuthGuard('jwt'))
   @Get('profile')

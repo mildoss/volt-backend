@@ -10,8 +10,8 @@ import {
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
-import {AuthGuard} from "@nestjs/passport";
-import {CurrentUser} from "../auth/decorators/user.decorator";
+import { AuthGuard } from '@nestjs/passport';
+import { CurrentUser } from '../auth/decorators/user.decorator';
 import { OnlyAdminGuard } from '../auth/guards/admin.guard';
 import { OrderStatus } from '@prisma/client';
 import { PaginationDto } from '../pagination/dto/pagination.dto';

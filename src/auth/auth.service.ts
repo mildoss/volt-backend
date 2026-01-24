@@ -1,13 +1,20 @@
-import {BadRequestException, Injectable, UnauthorizedException} from '@nestjs/common';
-import {PrismaService} from "../prisma.service";
-import {JwtService} from "@nestjs/jwt";
-import {AuthDto} from "./dto/auth.dto";
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { PrismaService } from '../prisma.service';
+import { JwtService } from '@nestjs/jwt';
+import { AuthDto } from './dto/auth.dto';
 import * as bcrypt from 'bcrypt';
-import {User} from "@prisma/client";
+import { User } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
-  constructor(private prisma: PrismaService, private jwt: JwtService) {}
+  constructor(
+    private prisma: PrismaService,
+    private jwt: JwtService,
+  ) {}
 
   async login(dto: AuthDto) {
     const user = await this.validateUser(dto);
@@ -15,13 +22,13 @@ export class AuthService {
 
     return {
       user: this.returnUserFields(user),
-      token
-    }
-  };
+      token,
+    };
+  }
 
   async register(dto: AuthDto) {
     const oldUser = await this.prisma.user.findUnique({
-      where: {email: dto.email}
+      where: { email: dto.email },
     });
 
     if (oldUser) throw new BadRequestException('User already exists');
@@ -35,7 +42,7 @@ export class AuthService {
         password: password,
         fullName: dto.fullName,
         phone: '',
-        avatarUrl: ''
+        avatarUrl: '',
       },
     });
 
@@ -43,24 +50,24 @@ export class AuthService {
 
     return {
       user: this.returnUserFields(user),
-      token
+      token,
     };
-  };
+  }
 
   private async issueTokens(userId: number) {
-    const data = {id: userId};
+    const data = { id: userId };
 
     const token = this.jwt.sign(data, {
-      expiresIn: '30d'
+      expiresIn: '30d',
     });
 
     return token;
-  };
+  }
 
   private async validateUser(dto: AuthDto) {
     const user = await this.prisma.user.findUnique({
-      where: {email: dto.email}
-    })
+      where: { email: dto.email },
+    });
 
     if (!user) throw new UnauthorizedException('User not found');
 
@@ -69,12 +76,12 @@ export class AuthService {
     if (!isValid) throw new UnauthorizedException('Invalid password');
 
     return user;
-  };
+  }
 
   private returnUserFields(user: User) {
     return {
       id: user.id,
       email: user.email,
     };
-  };
+  }
 }

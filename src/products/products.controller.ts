@@ -11,10 +11,10 @@ import {
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
-import {Product} from "@prisma/client";
-import {AuthGuard} from "@nestjs/passport";
-import {OnlyAdminGuard} from "../auth/guards/admin.guard";
-import {GetAllProductDto} from "./dto/get-all-product.dto";
+import { Product } from '@prisma/client';
+import { AuthGuard } from '@nestjs/passport';
+import { OnlyAdminGuard } from '../auth/guards/admin.guard';
+import { GetAllProductDto } from './dto/get-all-product.dto';
 import { CurrentUser } from '../auth/decorators/user.decorator';
 import { PaginationDto } from '../pagination/dto/pagination.dto';
 

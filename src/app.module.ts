@@ -12,7 +12,6 @@ import { StatisticsModule } from './statistics/statistics.module';
 import { PaginationModule } from './pagination/pagination.module';
 import { CategoryModule } from './category/category.module';
 
-
 @Module({
   imports: [
     ConfigModule.forRoot({

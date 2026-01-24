@@ -1,14 +1,17 @@
-import {BadRequestException, Injectable, NotFoundException} from '@nestjs/common';
-import {PrismaService} from "../prisma.service";
-import {UpdateUserDto} from "./dto/update-user.dto";
-import {compare, hash} from "bcrypt";
-
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { PrismaService } from '../prisma.service';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { compare, hash } from 'bcrypt';
 
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
-  async findById (id: number) {
+  async findById(id: number) {
     const user = await this.prisma.user.findUnique({
       where: { id },
       select: {
@@ -25,11 +28,11 @@ export class UsersService {
             name: true,
             price: true,
             imageUrl: true,
-            slug: true
-          }
-        }
-      }
-    })
+            slug: true,
+          },
+        },
+      },
+    });
 
     if (!user) throw new NotFoundException('User not found!');
 
@@ -51,13 +54,15 @@ export class UsersService {
       data: {
         favorites: {
           [isExists ? 'disconnect' : 'connect']: {
-            id: productId
-          }
-        }
-      }
-    })
+            id: productId,
+          },
+        },
+      },
+    });
 
-    return { message: isExists ? 'Removed from favorites' : 'Added to favorites' }
+    return {
+      message: isExists ? 'Removed from favorites' : 'Added to favorites',
+    };
   }
 
   async updateProfile(id: number, dto: UpdateUserDto) {
@@ -70,7 +75,9 @@ export class UsersService {
     }
 
     if (dto.email) {
-      const isSameUser = await this.prisma.user.findUnique({ where: { email: dto.email } });
+      const isSameUser = await this.prisma.user.findUnique({
+        where: { email: dto.email },
+      });
       if (isSameUser && id !== isSameUser.id) {
         throw new BadRequestException('Email is already busy');
       }
@@ -79,7 +86,9 @@ export class UsersService {
     let newPassword = user.password;
     if (dto.password) {
       if (!dto.oldPassword) {
-        throw new BadRequestException('To change password, enter your old password');
+        throw new BadRequestException(
+          'To change password, enter your old password',
+        );
       }
 
       const isValidOldPassword = await compare(dto.oldPassword, user.password);

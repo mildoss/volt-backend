@@ -1,7 +1,14 @@
-import {Controller, HttpCode, Post, UploadedFile, UseGuards, UseInterceptors} from "@nestjs/common";
-import {MediaService} from "./media.service";
-import {AuthGuard} from "@nestjs/passport";
-import {FileInterceptor} from "@nestjs/platform-express";
+import {
+  Controller,
+  HttpCode,
+  Post,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
+import { MediaService } from './media.service';
+import { AuthGuard } from '@nestjs/passport';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('media')
 export class MediaController {
@@ -15,7 +22,7 @@ export class MediaController {
     const result = await this.mediaService.uploadMedia(mediaFile);
     return {
       url: result.secure_url,
-      name: result.original_filename
+      name: result.original_filename,
     };
   }
 }
