@@ -1,8 +1,8 @@
-import {Injectable, NotFoundException} from '@nestjs/common';
-import {CreateProductDto} from './dto/create-product.dto';
-import {PrismaService} from "../prisma.service";
-import {EnumProductSort, GetAllProductDto} from "./dto/get-all-product.dto";
-import {Prisma} from "@prisma/client";
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { CreateProductDto } from './dto/create-product.dto';
+import { PrismaService } from '../prisma.service';
+import { EnumProductSort, GetAllProductDto } from './dto/get-all-product.dto';
+import { Prisma } from '@prisma/client';
 import { PaginationService } from '../pagination/pagination.service';
 import { PaginationDto } from '../pagination/dto/pagination.dto';
 
@@ -54,7 +54,7 @@ export class ProductsService {
   }
 
   async findAll(dto: GetAllProductDto) {
-    const { sort, searchTerm } = dto;
+    const { sort, searchTerm, categoryId, minPrice, maxPrice } = dto;
     const { skip, perPage } = this.paginationService.getPagination(dto);
 
     const prismaSort: Prisma.ProductOrderByWithRelationInput[] = [];
@@ -94,6 +94,17 @@ export class ProductsService {
           ],
         }
       : {};
+
+    if (categoryId) {
+      prismaSearch.categoryId = +categoryId;
+    }
+
+    if (minPrice || maxPrice) {
+      prismaSearch.price = {
+        ...(minPrice ? { gte: +minPrice } : {}),
+        ...(maxPrice ? { lte: +maxPrice } : {}),
+      };
+    }
 
     const products = await this.prisma.product.findMany({
       where: prismaSearch,

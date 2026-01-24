@@ -1,11 +1,11 @@
-import {IsEnum, IsOptional, IsString} from "class-validator";
+import { IsEnum, IsOptional, IsString } from 'class-validator';
 import { PaginationDto } from '../../pagination/dto/pagination.dto';
 
 export enum EnumProductSort {
   HIGH_PRICE = 'high-price',
   LOW_PRICE = 'low-price',
   NEWEST = 'newest',
-  OLDEST = 'oldest'
+  OLDEST = 'oldest',
 }
 
 export class GetAllProductDto extends PaginationDto {
@@ -16,4 +16,16 @@ export class GetAllProductDto extends PaginationDto {
   @IsOptional()
   @IsString()
   searchTerm: string;
+
+  @IsOptional()
+  @IsString()
+  categoryId?: string;
+
+  @IsOptional()
+  @IsString()
+  minPrice?: string;
+
+  @IsOptional()
+  @IsString()
+  maxPrice?: string;
 }

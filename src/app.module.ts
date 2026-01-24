@@ -10,6 +10,7 @@ import { OrderModule } from './order/order.module';
 import { MediaModule } from './media/media.module';
 import { StatisticsModule } from './statistics/statistics.module';
 import { PaginationModule } from './pagination/pagination.module';
+import { CategoryModule } from './category/category.module';
 
 
 @Module({
@@ -26,6 +27,7 @@ import { PaginationModule } from './pagination/pagination.module';
     MediaModule,
     StatisticsModule,
     PaginationModule,
+    CategoryModule,
   ],
   controllers: [],
   providers: [PrismaService],
